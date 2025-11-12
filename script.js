@@ -4,7 +4,7 @@ const ORS_API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjA4ZWN
 const map = L.map('map').setView(startCoords, 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
+  attribution: 'Â© OpenStreetMap contributors',
   maxZoom: 19,
 }).addTo(map);
 
@@ -24,12 +24,12 @@ function updatePosition(pos){
   document.getElementById('heading').textContent = heading ? heading.toFixed(0) : '--';
 }
 
-function showError(err){ alert('Erreur géolocalisation : '+err.message); }
+function showError(err){ alert('Erreur gÃ©olocalisation : '+err.message); }
 
 if('geolocation' in navigator){
   navigator.geolocation.watchPosition(updatePosition, showError, { enableHighAccuracy:true, maximumAge:0 });
 }else{
-  alert("La géolocalisation n'est pas disponible sur cet appareil.");
+  alert("La gÃ©olocalisation n'est pas disponible sur cet appareil.");
 }
 
 // Boutons
@@ -46,14 +46,16 @@ document.getElementById('route').addEventListener('click',()=>{
   input.style.display = input.style.display==='none'?'block':'none';
 });
 
-// Itinéraire
+// ItinÃ©raire
 document.getElementById('go').addEventListener('click', async ()=>{
   const destName = document.getElementById('destination').value.trim();
   if(!destName) return alert("Veuillez entrer une destination !");
 
   try{
-    const geoRes = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(destName)}&boundary.country=FR`);
-    const geoData = await geoRes.json();
+    const geoRes = await fetch(
+  `https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(destName)}&boundary.country=FR`
+);
+const geoData = await geoRes.json();
 
     let lon, lat;
     if(geoData.features && geoData.features.length>0){
@@ -80,7 +82,7 @@ document.getElementById('go').addEventListener('click', async ()=>{
     }
 
     if(!routeData.features || routeData.features.length===0) {
-      alert("Impossible de calculer l'itinéraire.");
+      alert("Impossible de calculer l'itinÃ©raire.");
       return;
     }
 
@@ -91,6 +93,7 @@ document.getElementById('go').addEventListener('click', async ()=>{
 
   }catch(err){
     console.error("Erreur ORS :", err);
-    alert("Erreur lors du calcul de l'itinéraire.");
+    alert("Erreur lors du calcul de l'itinÃ©raire.");
   }
 });
+
