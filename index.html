@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>GPS Mobile Leaflet</title>
 
-  <!-- Manifest pour PWA -->
-  <link rel="manifest" href="manifest.json">
-
   <!-- CSS Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  
-  <!-- CSS perso -->
+
   <style>
     html, body, #map {
       height: 100%;
@@ -33,4 +29,55 @@
 
     .info-panel button {
       margin-top: 5px;
-      ma
+      margin-right: 5px;
+      border: none;
+      background: #007aff;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #route-input {
+      margin-top: 5px;
+      display: none;
+    }
+
+    #route-input input {
+      width: 140px;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+    }
+
+    #route-input button {
+      padding: 4px 8px;
+      background: #28a745;
+      color: white;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class="info-panel">
+    <p><strong>Vitesse :</strong> <span id="speed">--</span> km/h</p>
+    <p><strong>Direction :</strong> <span id="heading">--</span>°</p>
+    <button id="recenter">📍 Centrer</button>
+    <button id="clear">🧹 Effacer</button>
+    <button id="route">🗺️ Itinéraire</button>
+
+    <div id="route-input">
+      <input type="text" id="destination" placeholder="Entrer destination...">
+      <button id="go">Go</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
