@@ -1,87 +1,49 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GPS - Saint-Denis-en-Bugey</title>
+    <meta charset="UTF-8">
+    <title>Calcul d'itinéraire Lyon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Feuille de style Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-    crossorigin=""
-  />
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.5/dist/leaflet.css"
+          integrity="sha256-sA+ePH5jw2+KXjKXzV1Pb9VnUE3Bz5wTaaP04g+o5sM=" crossorigin=""/>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Arial, sans-serif;
-    }
-
-    #map {
-      width: 100%;
-      height: 90vh;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      background: #f8f8f8;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      flex-wrap: wrap;
-    }
-
-    input[type="text"] {
-      padding: 8px;
-      font-size: 16px;
-      width: 60%;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-
-    button {
-      padding: 8px 16px;
-      font-size: 16px;
-      background-color: #0078d4;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: #005fa3;
-    }
-  </style>
+    <style>
+        body, html { height: 100%; margin: 0; padding: 0; }
+        #map { width: 100%; height: 90%; }
+        #controls {
+            padding: 10px;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
-
 <body>
-  <div class="controls">
-    <input
-      type="text"
-      id="destination"
-      placeholder="Entrez une destination (ex: Lyon)"
-    />
-    <button id="goBtn">Go</button>
-  </div>
 
-  <div id="map"></div>
+<div id="controls">
+    <button id="locateBtn">Utiliser ma position</button>
+    <button id="resetBtn">Réinitialiser</button>
+    <p>Cliquez sur la carte pour définir le départ puis l'arrivée.</p>
+</div>
 
-  <!-- Librairie Leaflet -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha512-o9N1jQD/Q+YwEKeosFVJeFt3PcTJS3BM4tiTqcKoy0eZZ+j9RnBbTK1ZBOqVaki3P6KyHRcY6z3n1jT8v3rYGQ=="
-    crossorigin=""
-  ></script>
+<div id="map"></div>
 
-  <!-- Script principal -->
-  <script src="script.js"></script>
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.5/dist/leaflet.js"
+        integrity="sha256-o9N1j6kZ6t4KdMztp2RiOiZKJrS7EVSpk8f5+4v0zNQ=" crossorigin=""></script>
+
+<!-- Polyline Plugin pour décoder la géométrie ORS -->
+<script src="https://unpkg.com/@mapbox/polyline@1.1.1/src/polyline.js"></script>
+
+<!-- Ton script.js -->
+<script src="script.js"></script>
+
 </body>
 </html>
