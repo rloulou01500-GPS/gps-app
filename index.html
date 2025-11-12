@@ -1,11 +1,21 @@
 ﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <title>GPS Mobile Leaflet</title>
 
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <meta name="theme-color" content="#007aff" />
+  <script>
+    // Enregistre le service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log("✅ Service Worker enregistré"))
+        .catch(err => console.error("❌ Erreur SW:", err));
+    }
+  </script>
 
   <style>
     html, body, #map { height: 100%; margin: 0; padding: 0; }
@@ -20,7 +30,6 @@
     #route-input button { padding:4px 8px; background:#28a745; color:white; border-radius:6px; border:none; cursor:pointer; }
   </style>
 </head>
-
 <body>
   <div id="map"></div>
 
