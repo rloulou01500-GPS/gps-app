@@ -1,73 +1,59 @@
-// script.js
+// Initialisation de la carte
+const map = L.map('map').setView([46.6, 2.5], 6); // Vue France
 
-// Initialisation de la carte centrée sur la France
-const map = L.map('map').setView([46.6, 2.5], 6);
-
-// Ajout du fond de carte OpenStreetMap
+// Carte OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors',
   maxZoom: 19
 }).addTo(map);
 
-// Marker pour la position utilisateur
+// Marker pour la position
 let userMarker = null;
-let userCircle = null;
+const userCircle = L.circle([0,0], {radius: 5, color: 'blue'}).addTo(map);
 
-// Fonction pour mettre à jour la position GPS
-function updatePosition(position) {
-  const lat = position.coords.latitude;
-  const lon = position.coords.longitude;
-
-  if (!userMarker) {
-    userMarker = L.marker([lat, lon], { title: "Vous êtes ici" }).addTo(map);
-    userCircle = L.circle([lat, lon], { radius: position.coords.accuracy }).addTo(map);
-    map.setView([lat, lon], 14);
-  } else {
-    userMarker.setLatLng([lat, lon]);
-    userCircle.setLatLng([lat, lon]);
-    userCircle.setRadius(position.coords.accuracy);
-  }
-}
-
-// Suivi GPS en temps réel
-if (navigator.geolocation) {
-  navigator.geolocation.watchPosition(updatePosition, (err) => {
-    console.error("Erreur GPS :", err);
-  }, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: 10000
-  });
-} else {
-  alert("Votre navigateur ne supporte pas la géolocalisation.");
-}
-
-// Cluster pour les radars
+// Clustering radars
 const radarCluster = L.markerClusterGroup();
 map.addLayer(radarCluster);
 
-// Fonction pour charger les radars depuis un fichier GeoJSON
+// Fonction pour suivre la position
+function updatePosition(position) {
+  const lat = position.coords.latitude;
+  const lng = position.coords.longitude;
+
+  if (!userMarker) {
+    userMarker = L.marker([lat, lng]).addTo(map);
+    map.setView([lat, lng], 13);
+  } else {
+    userMarker.setLatLng([lat, lng]);
+  }
+  userCircle.setLatLng([lat, lng]);
+}
+
+// Rafraîchir la position toutes les 3 secondes
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(updatePosition, 
+    err => console.error("Erreur GPS : ", err),
+    { enableHighAccuracy: true, maximumAge: 1000 });
+} else {
+  alert("Géolocalisation non supportée !");
+}
+
+// Charger les radars depuis radars.geojson
 async function loadRadars() {
   try {
-    const response = await fetch('radars.geojson');
-    const geojson = await response.json();
+    const res = await fetch("radars.geojson");
+    const data = await res.json();
 
-    L.geoJSON(geojson, {
-      pointToLayer: (feature, latlng) => {
-        const marker = L.marker(latlng, {
-          title: feature.properties.nom || "Radar"
-        });
-        let popupContent = `<b>Type :</b> ${feature.properties.type || "Radar"}<br>`;
-        popupContent += `<b>Vitesse :</b> ${feature.properties.vitesse || "?"} km/h<br>`;
-        marker.bindPopup(popupContent);
-        return marker;
-      }
-    }).addTo(radarCluster);
-
-  } catch (error) {
-    console.error("Impossible de charger les radars :", error);
+    data.features.forEach(f => {
+      const [lng, lat] = f.geometry.coordinates;
+      const name = f.properties.nom || "Radar";
+      const type = f.properties.type || "inconnu";
+      const marker = L.marker([lat, lng])
+        .bindPopup(`<b>${name}</b><br>Type: ${type}`);
+      radarCluster.addLayer(marker);
+    });
+  } catch(err) {
+    console.error("Erreur chargement radars : ", err);
   }
 }
 
-// Chargement initial des radars
 loadRadars();
