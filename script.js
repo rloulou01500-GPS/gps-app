@@ -1,253 +1,73 @@
-/* script.js
-   Suivi GPS en direct - mobile friendly
-   - Démarrer / Arrêter le suivi
-   - Suivi automatique (centrer) optionnel
-   - Affichage orientation (boussole) optionnel
-   - Tracé du trajet + sauvegarde dans localStorage
-*/
+// script.js
 
-/* ---------- CONFIG ---------- */
-// Point de départ par défaut (Saint-Denis-en-Bugey) si géoloc non disponible au démarrage
-const START_COORDS = [45.955, 5.336];
+// Initialisation de la carte centrée sur la France
+const map = L.map('map').setView([46.6, 2.5], 6);
 
-/* ---------- STATE ---------- */
-let map;
-let gpsMarker;           // L.marker avec divIcon
-let pathLine;            // L.polyline du trajet
-let watchId = null;      // id retourné par geolocation.watchPosition
-let trail = [];          // tableau [lat, lng]
-let follow = true;       // centrer automatiquement
-let usingHeading = false;
-let lastHeading = 0;
+// Ajout du fond de carte OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors',
+  maxZoom: 19
+}).addTo(map);
 
-/* ---------- INIT MAP ---------- */
-function initMap(){
-  map = L.map('map', { zoomControl: true }).setView(START_COORDS, 14);
+// Marker pour la position utilisateur
+let userMarker = null;
+let userCircle = null;
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
-    maxZoom: 19
-  }).addTo(map);
+// Fonction pour mettre à jour la position GPS
+function updatePosition(position) {
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
 
-  // charger le trajet sauvegardé
-  const saved = localStorage.getItem('gps_trail_v1');
-  if(saved){
-    try{
-      trail = JSON.parse(saved) || [];
-    }catch(e){
-      trail = [];
-    }
+  if (!userMarker) {
+    userMarker = L.marker([lat, lon], { title: "Vous êtes ici" }).addTo(map);
+    userCircle = L.circle([lat, lon], { radius: position.coords.accuracy }).addTo(map);
+    map.setView([lat, lon], 14);
+  } else {
+    userMarker.setLatLng([lat, lon]);
+    userCircle.setLatLng([lat, lon]);
+    userCircle.setRadius(position.coords.accuracy);
   }
-
-  pathLine = L.polyline(trail, { color: '#007aff', weight: 4 }).addTo(map);
-
-  // initial marker (if trail has last point, use it; else start coords)
-  const initial = trail.length ? trail[trail.length - 1] : START_COORDS;
-  gpsMarker = L.marker(initial, { icon: createMarkerIcon(0) }).addTo(map);
 }
 
-/* ---------- UI HANDLERS ---------- */
-const elStart = document.getElementById('btnStart');
-const elStop  = document.getElementById('btnStop');
-const elClear = document.getElementById('btnClear');
-const elFollow = document.getElementById('chkFollow');
-const elHeading = document.getElementById('chkHeading');
-const elStatus = document.getElementById('statustxt');
-
-elStart.addEventListener('click', startTracking);
-elStop.addEventListener('click', stopTracking);
-elClear.addEventListener('click', clearTrail);
-elFollow.addEventListener('change', (e) => follow = e.target.checked);
-elHeading.addEventListener('change', (e) => toggleHeading(e.target.checked));
-
-/* ---------- GEOLOCATION ---------- */
-function startTracking(){
-  if (!navigator.geolocation){
-    alert("Géolocalisation non supportée par ce navigateur.");
-    return;
-  }
-
-  // Demander permission et démarrer watchPosition
-  watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+// Suivi GPS en temps réel
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(updatePosition, (err) => {
+    console.error("Erreur GPS :", err);
+  }, {
     enableHighAccuracy: true,
-    maximumAge: 1000,
+    maximumAge: 0,
     timeout: 10000
   });
-
-  elStart.disabled = true;
-  elStop.disabled = false;
-  elStatus.textContent = 'En suivi';
+} else {
+  alert("Votre navigateur ne supporte pas la géolocalisation.");
 }
 
-function stopTracking(){
-  if (watchId !== null){
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-  }
-  elStart.disabled = false;
-  elStop.disabled = true;
-  elStatus.textContent = 'Arrêté';
-}
+// Cluster pour les radars
+const radarCluster = L.markerClusterGroup();
+map.addLayer(radarCluster);
 
-/* ---------- POSITION CALLBACK ---------- */
-function onPosition(pos){
-  const lat = pos.coords.latitude;
-  const lng = pos.coords.longitude;
-  const speed = pos.coords.speed;    // m/s, peut être null
-  const heading = pos.coords.heading; // en degrés (0 = N), souvent null
+// Fonction pour charger les radars depuis un fichier GeoJSON
+async function loadRadars() {
+  try {
+    const response = await fetch('radars.geojson');
+    const geojson = await response.json();
 
-  // Mettre à jour marqueur
-  updateMarker([lat, lng], heading);
+    L.geoJSON(geojson, {
+      pointToLayer: (feature, latlng) => {
+        const marker = L.marker(latlng, {
+          title: feature.properties.nom || "Radar"
+        });
+        let popupContent = `<b>Type :</b> ${feature.properties.type || "Radar"}<br>`;
+        popupContent += `<b>Vitesse :</b> ${feature.properties.vitesse || "?"} km/h<br>`;
+        marker.bindPopup(popupContent);
+        return marker;
+      }
+    }).addTo(radarCluster);
 
-  // Ajouter au trail (éviter doublons fréquents)
-  const last = trail.length ? trail[trail.length - 1] : null;
-  if(!last || distanceMeters(last, [lat,lng]) > 1){ // 1m mini
-    trail.push([lat, lng]);
-    pathLine.setLatLngs(trail);
-    localStorage.setItem('gps_trail_v1', JSON.stringify(trail));
-  }
-
-  // Centrer si follow activé
-  if(follow){
-    map.setView([lat, lng], map.getZoom());
-  }
-
-  // Mettre à jour statut vitesse (facultatif : ici on affiche en title)
-  const stext = (speed !== null && !isNaN(speed)) ? `${(speed*3.6).toFixed(1)} km/h` : '—';
-  elStatus.textContent = `En suivi • Vitesse: ${stext}`;
-}
-
-/* ---------- MARKER CREATION & UPDATE ---------- */
-function createMarkerIcon(angleDeg){
-  // divIcon with rotating arrow inside
-  const div = document.createElement('div');
-  div.className = 'gps-marker';
-  div.style.transform = `rotate(${angleDeg}deg)`;
-
-  const arrow = document.createElement('div');
-  arrow.className = 'gps-arrow';
-  // rotate arrow so it's pointing "up" but marker rotation will rotate whole div
-  div.appendChild(arrow);
-
-  // Create a Leaflet divIcon from the element's outerHTML
-  return L.divIcon({
-    className: '',
-    html: div.outerHTML,
-    iconSize: [28,28],
-    iconAnchor: [14,14]
-  });
-}
-
-function updateMarker(latlng, headingDeg){
-  // update marker position
-  if(!gpsMarker){
-    gpsMarker = L.marker(latlng, { icon: createMarkerIcon(headingDeg || 0) }).addTo(map);
-    return;
-  }
-  gpsMarker.setLatLng(latlng);
-
-  // Update rotation: try device heading first, fallback to parameter
-  const angle = (usingHeading && typeof lastHeading === 'number' && !isNaN(lastHeading) && lastHeading !== null)
-                ? lastHeading
-                : (typeof headingDeg === 'number' && !isNaN(headingDeg) ? headingDeg : 0);
-
-  // Try to rotate the marker DOM if available
-  const el = gpsMarker.getElement();
-  if(el){
-    el.style.transform = `rotate(${angle}deg)`;
-  } else {
-    // fallback: replace icon
-    gpsMarker.setIcon(createMarkerIcon(angle));
+  } catch (error) {
+    console.error("Impossible de charger les radars :", error);
   }
 }
 
-/* ---------- ERROR HANDLER ---------- */
-function onError(err){
-  console.warn("GEO ERROR", err);
-  let msg = '';
-  switch(err.code){
-    case 1: msg = 'Permission refusée.'; break;
-    case 2: msg = 'Position introuvable.'; break;
-    case 3: msg = 'Délai d’attente dépassé.'; break;
-    default: msg = err.message || 'Erreur de géolocalisation.';
-  }
-  alert('Géolocalisation : ' + msg);
-  elStatus.textContent = 'Erreur GPS';
-  stopTracking();
-}
-
-/* ---------- HEADING (Device Orientation) ---------- */
-function toggleHeading(enable){
-  usingHeading = enable;
-  if(enable){
-    // iOS Safari requires secure context and a user permission call for DeviceOrientation
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      // iOS 13+ permission model
-      DeviceOrientationEvent.requestPermission().then(response => {
-        if(response === 'granted'){
-          window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-          window.addEventListener('deviceorientation', onDeviceOrientation, true);
-        } else {
-          alert('Permission orientation refusée par l’utilisateur.');
-          document.getElementById('chkHeading').checked = false;
-          usingHeading = false;
-        }
-      }).catch(err=>{
-        console.warn('orientation permission error', err);
-        alert('Impossible d’accéder à l’orientation (permission).');
-        document.getElementById('chkHeading').checked = false;
-        usingHeading = false;
-      });
-    } else {
-      // non iOS : just listen
-      window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-      window.addEventListener('deviceorientation', onDeviceOrientation, true);
-    }
-  } else {
-    window.removeEventListener('deviceorientationabsolute', onDeviceOrientation, true);
-    window.removeEventListener('deviceorientation', onDeviceOrientation, true);
-  }
-}
-
-function onDeviceOrientation(e){
-  // e.alpha = rotation around z axis in degrees (0 = north)
-  // Some browsers supply absolute; others need conversion
-  if(e && typeof e.alpha === 'number'){
-    // alpha is degrees clockwise from north
-    lastHeading = 360 - e.alpha; // adjust so 0 points up like map
-    // update marker rotation immediately
-    const el = gpsMarker && gpsMarker.getElement();
-    if(el){
-      el.style.transform = `rotate(${lastHeading}deg)`;
-    }
-  }
-}
-
-/* ---------- UTILITIES ---------- */
-function distanceMeters(a, b){
-  // Haversine
-  const R = 6371000;
-  const toRad = x => x * Math.PI/180;
-  const dLat = toRad(b[0]-a[0]);
-  const dLon = toRad(b[1]-a[1]);
-  const lat1 = toRad(a[0]), lat2 = toRad(b[0]);
-  const sinDlat = Math.sin(dLat/2), sinDlon = Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(sinDlat*sinDlat + Math.cos(lat1)*Math.cos(lat2)*sinDlon*sinDlon), Math.sqrt(1 - (sinDlat*sinDlat + Math.cos(lat1)*Math.cos(lat2)*sinDlon*sinDlon)));
-  return R * c;
-}
-
-/* ---------- TRAIL CONTROL ---------- */
-function clearTrail(){
-  if(confirm("Effacer le trajet enregistré ?")){
-    trail = [];
-    pathLine.setLatLngs([]);
-    localStorage.removeItem('gps_trail_v1');
-  }
-}
-
-/* ---------- STARTUP ---------- */
-initMap();
-
-/* optional: if you want the app to start immediately uncomment next line
-   but it's recommended to let user press Démarrer to grant permission */
-// startTracking();
+// Chargement initial des radars
+loadRadars();

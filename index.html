@@ -1,44 +1,33 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-  <title>Suivi GPS en direct</title>
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha512-sA+ePH5jw2+KXjKXzV1Pb9VnUE3Bz5wTaaP04g+o5sM=" crossorigin=""/>
-
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte GPS Radars France</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+4SxNKSeKq9wLQe1+OGWTxN4QhMmt6r1K+LV+oVLY="
+    crossorigin=""
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+  />
+  <style>
+    html, body, #map { height: 100%; margin: 0; padding: 0; }
+    .leaflet-popup-content { font-size: 14px; }
+  </style>
 </head>
 <body>
-  <div id="topbar">
-    <div id="title">Suivi GPS — Saint-Denis-en-Bugey</div>
-    <div id="status">Statut : <span id="statustxt">Arrêté</span></div>
-  </div>
-
   <div id="map"></div>
 
-  <div id="controls">
-    <button id="btnStart">Démarrer</button>
-    <button id="btnStop" disabled>Arrêter</button>
-    <label><input type="checkbox" id="chkFollow" checked> Suivre</label>
-    <label><input type="checkbox" id="chkHeading"> Orientation</label>
-    <button id="btnClear">Effacer trajet</button>
-  </div>
-
-  <div id="notes">
-    <small>
-      Appuie sur <strong>Démarrer</strong>, autorise la localisation.  
-      L'orientation fonctionne si ton appareil fournit la boussole (certaines versions d'iOS demandent une permission supplémentaire).
-    </small>
-  </div>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha512-o9N1jQD/Q+YwEKeosFVJeFt3PcTJS3BM4tiTqcKoy0eZZ+j9RnBbTK1ZBOqVaki3P6KyHRcY6z3n1jT8v3rYGQ=="
-          crossorigin=""></script>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

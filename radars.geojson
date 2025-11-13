@@ -1,0 +1,53 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Radar fixe A6 Lyon",
+        "type": "Fixe",
+        "vitesse": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [4.835, 45.764]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Radar fixe A7 Marseille",
+        "type": "Fixe",
+        "vitesse": 90
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [5.369, 43.296]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Radar mobile N20 Paris",
+        "type": "Mobile",
+        "vitesse": 50
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.352, 48.856]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "nom": "Radar fixe A10 Tours",
+        "type": "Fixe",
+        "vitesse": 110
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [0.684, 47.394]
+      }
+    }
+  ]
+}
