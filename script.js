@@ -8,7 +8,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // URL du fichier GeoJSON local (radars générés via updateRadars.js)
-const radarsURL = 'radars.geojson';
+const radarsURL = 'https://raw.githubusercontent.com/rloulou01500-GPS/gps-app/refs/heads/main/radars.geojson' //'radars.geojson';
 
 // Charger les radars et les ajouter à la carte
 fetch(radarsURL)
