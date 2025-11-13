@@ -1,6 +1,6 @@
 
 // URL brute GitHub du fichier radars.geojson
-const radarsURL = 'https://raw.githubusercontent.com/rloulou01500-GPS/gps-app/refs/heads/main/radars.geojson //?v=' + Date.now();
+const radarsURL = 'https://raw.githubusercontent.com/rloulou01500-GPS/gps-app/refs/heads/main/radars.geojson?v=' + Date.now();
 
 // Initialisation de la carte
 const map = L.map('map').setView([46.6, 2.5], 6); // Centre approximatif de la France
