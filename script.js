@@ -1,35 +1,53 @@
-// Initialisation de la carte centrée sur la France
-const map = L.map('map').setView([46.5, 2.5], 6);
 
-// Ajouter le fond de carte OpenStreetMap
+// URL brute GitHub du fichier radars.geojson
+const radarsURL = 'https://raw.githubusercontent.com/rloulou01500-GPS/gps-app/refs/heads/main/radars.geojson?v=' + Date.now();
+
+// Initialisation de la carte
+const map = L.map('map').setView([46.6, 2.5], 6); // Centre approximatif de la France
+
+// Ajout du fond de carte OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
-    attribution: '© OpenStreetMap'
+    attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// URL du fichier GeoJSON local (radars générés via updateRadars.js)
-const radarsURL = 'https://raw.githubusercontent.com/rloulou01500-GPS/gps-app/refs/heads/main/radars.geojson' //'radars.geojson';
+// Marqueur pour la position actuelle
+const userMarker = L.marker([0, 0]).addTo(map).bindPopup('Vous êtes ici');
 
-// Charger les radars et les ajouter à la carte
+// Fonction pour mettre à jour la position de l'utilisateur
+function updatePosition() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            userMarker.setLatLng([lat, lon]).update();
+            map.setView([lat, lon], 12);
+        });
+    } else {
+        alert('Géolocalisation non supportée par votre navigateur.');
+    }
+}
+
+// Mise à jour immédiate et toutes les 5 secondes
+updatePosition();
+setInterval(updatePosition, 5000);
+
+// Chargement des radars depuis GitHub
 fetch(radarsURL)
-    .then(response => response.json())
+    .then(res => {
+        if (!res.ok) throw new Error('Impossible de charger les radars');
+        return res.json();
+    })
     .then(data => {
         L.geoJSON(data, {
             onEachFeature: (feature, layer) => {
                 const props = feature.properties;
-                let popupText = `<b>Type:</b> ${props.Type} <br> <b>Vitesse max:</b> ${props.VMA} km/h`;
-                layer.bindPopup(popupText);
+                layer.bindPopup(`
+                    <b>${props['Type de radar']}</b><br>
+                    Vitesse max: ${props['VMA']} km/h<br>
+                    Mise en service: ${props['Date de mise-en-service']}
+                `);
             }
         }).addTo(map);
     })
-    .catch(err => console.error("Erreur chargement radars:", err));
-
-// Optionnel : marquer la position de l'utilisateur
-map.locate({ setView: true, maxZoom: 16 });
-function onLocationFound(e) {
-    const radius = e.accuracy / 2;
-    L.marker(e.latlng).addTo(map)
-        .bindPopup("Vous êtes ici").openPopup();
-    L.circle(e.latlng, radius).addTo(map);
-}
-map.on('locationfound', onLocationFound);
+    .catch(err => console.error('Erreur chargement radars :', err));
