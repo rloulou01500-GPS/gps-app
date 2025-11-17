@@ -2,18 +2,27 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Carte interactive des radars</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-o2EN+vZCzWuoTn+v0qsgn9nHn3szQ8tWvCk3rC7A+E4="
-          crossorigin=""/>
-    <link rel="stylesheet" href="style.css">
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <link rel="stylesheet" href="./style.css?v=1">
 </head>
 <body>
-    <h1>Carte interactive des radars</h1>
-    <div id="map"></div>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-o8dFn0+cUuJ7wrS6phqM5sknNpj+Fo1K27vJTcH3j4o="
-            crossorigin=""></script>
-    <script src="script.js"></script>
+
+<h2>Carte interactive des radars</h2>
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Ton script -->
+<script src="./script.js?v=1"></script>
+
 </body>
 </html>
